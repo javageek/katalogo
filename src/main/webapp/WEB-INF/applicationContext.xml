@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+
+<beans>
+	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="location" value="/WEB-INF/classes/hibernate.properties"/>
+	</bean>
+	
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
+		<property name="driverClassName" value="${hibernate.driver}"/>
+		<property name="url" value="${hibernate.url}"/>
+		<property name="username" value="${hibernate.user}"/>
+		<property name="password" value="${hibernate.password}"/>
+	</bean>
+
+	<!-- Hibernate SessionFactory -->
+	<bean id="sessionFactory" class="org.javageek.katalogo.KatalogoSessionFactory">
+		<property name="dataSource"><ref local="dataSource"/></property>
+		<property name="annotatedClasses">
+			<list>
+				<value>org.javageek.katalogo.model.User</value>
+			</list>
+		</property>
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">${hibernate.dialect}</prop>
+				<prop key="hibernate.connection.pool_size">5</prop>
+				<prop key="hibernate.show_sql">${hibernate.show_sql}</prop>
+				<prop key="hibernate.jdbc.batch_size">0</prop>
+				<prop key="hibernate.bytecode.use_reflection_optimizer">true</prop>
+            	<prop key="hibernate.cache.provider_class">org.hibernate.cache.EhCacheProvider</prop>
+            	<prop key="hibernate.hibernate.cache.use_query_cache">true</prop>
+			</props>
+		</property>
+	</bean>
+
+    <bean id="transactionManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+       <property name="sessionFactory"><ref bean="sessionFactory"/></property>
+    </bean>
+
+	<bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"/>
+
+	<bean class="org.springframework.transaction.interceptor.TransactionAttributeSourceAdvisor">
+		<property name="transactionInterceptor" ref="transactionInterceptor"/>
+	</bean>
+
+	<bean id="transactionInterceptor" class="org.springframework.transaction.interceptor.TransactionInterceptor">
+		<property name="transactionManager" ref="transactionManager"/>
+		<property name="transactionAttributeSource">
+			<bean class="org.springframework.transaction.annotation.AnnotationTransactionAttributeSource"/>
+		</property>
+	</bean>
+	<!-- End transaction management -->
+
+	<!-- Services -->
+	<bean id="userService" class="org.javageek.katalogo.service.impl.UserServiceImpl">
+		<property name="userDao" ref="userDAO"/>
+	</bean>
+    <!-- End Services -->
+
+    <!-- DAOs -->
+    <bean id="userDAO" class="org.javageek.katalogo.dao.impl.UserDaoImpl">
+		<property name="sessionFactory"><ref local="sessionFactory"/></property>
+	</bean>
+    <!-- End DAOs -->
+
+    <!-- Application -->
+	<bean id="katalogoApplication" class="org.javageek.katalogo.KatalogoApplication"/>
+</beans>
