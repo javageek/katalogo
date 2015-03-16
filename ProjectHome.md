@@ -1,0 +1,1 @@
+Katalogo is a CD/DVD catalog application written in Java and intended to be used by people who wants to keep tabs on their CD and/or DVD collection.
